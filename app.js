@@ -36,7 +36,6 @@ bot.on('message', async message => {
     let command = messageArray[0];
     let args = messageArray.slice(1);
 
-
     if (!command.startsWith(commandPrefix)) return;
 
     // Testing Command
@@ -49,19 +48,19 @@ bot.on('message', async message => {
             .setAuthor(message.author.username)
             .setDescription("Set Infos");
         message.channel.send(embed);
-
-
     }
     // Roles
-    const ALLOWED_ROLES = ['Streamer', 'Youtuber'];
-    // // Add role to user
-    // if (command === commandPrefix + "addRole") {
-    //     let role = args[0];
-    //     const canAdd = ALLOWED_ROLES.includes(role.toLowerCase());
-    //     if (canAdd) {
-    //         message.member.addRole(message.guild.roles.find("name", role));
-    //     }
-    // }
+    const ALLOWED_ROLES = ['Streamer', 'YouTuber'];
+    // Add role to user
+    if (command === commandPrefix + "addRole") {
+        let role = args[0]
+        const canAdd = ALLOWED_ROLES.includes(role);
+        log(canAdd)
+        if (canAdd) {
+            message.member.addRole(message.member.guild.roles.find("name", role));
+            message.channel.send("You have been added to " + role + "@" + message.member);
+        }
+    }
     // List roles to user
     if (command === commandPrefix + "listRoles") {
         message.channel.send("The available roles are " + ALLOWED_ROLES);
