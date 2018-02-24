@@ -1,0 +1,5 @@
+{
+    "TOKEN": "YOUR_TOKEN",
+    "COMMAND_PREFIX": "!",
+    "BOT_ACTIVITY": "Hello World"
+}
