@@ -15,8 +15,7 @@ const error = console.error
 
 bot.on('ready', async () => {
     log(chalk.green.bold('Bot is ready! ' + bot.user.username));
-    bot.user.setActivity(botActivity);
-
+    bot.user.setActivity("Checkout a radmom streamer",{url:"https://www.twitch.tv/streamkingshq", type:"STREAMING"});
     // Gives link to connect bot to server 
     try {
         let link = await bot.generateInvite(["ADMINISTRATOR"]);
@@ -40,6 +39,7 @@ bot.on('message', async message => {
 
     if (!command.startsWith(commandPrefix)) return;
 
+    // Testing Command
     if (command === commandPrefix + "ping") {
         message.channel.send("Pong");
     }
@@ -54,14 +54,14 @@ bot.on('message', async message => {
     }
     // Roles
     const ALLOWED_ROLES = ['Streamer', 'Youtuber'];
-    // Add role to user
-    if (command === commandPrefix + "addRole") {
-        let role = args[0];
-        const canAdd = ALLOWED_ROLES.includes(role.toLowerCase());
-        if (canAdd) {
-            message.member.addRole(message.guild.roles.find("name", role));
-        }
-    }
+    // // Add role to user
+    // if (command === commandPrefix + "addRole") {
+    //     let role = args[0];
+    //     const canAdd = ALLOWED_ROLES.includes(role.toLowerCase());
+    //     if (canAdd) {
+    //         message.member.addRole(message.guild.roles.find("name", role));
+    //     }
+    // }
     // List roles to user
     if (command === commandPrefix + "listRoles") {
         message.channel.send("The available roles are " + ALLOWED_ROLES);
