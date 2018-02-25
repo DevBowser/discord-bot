@@ -11,18 +11,30 @@ const discordToken = config.TOKEN
 const commandPrefix = config.COMMAND_PREFIX
 const botActivity = config.BOT_ACTIVITY
 const log = console.log
-const error = console.error
 
 bot.on('ready', async () => {
-    log(chalk.green.bold('Bot is ready! ' + bot.user.username));
-    bot.user.setActivity("Checkout a radmom streamer",{url:"https://www.twitch.tv/streamkingshq", type:"STREAMING"});
+    log(chalk.green.bold(bot.user.username + ' is ready!'));
+    bot.user.setActivity("Checkout a random streamer", {
+        url: "https://www.twitch.tv/streamkingshq",
+        type: "STREAMING"
+    });
     // Gives link to connect bot to server 
     try {
         let link = await bot.generateInvite(["ADMINISTRATOR"]);
         log("Please use the following link to invite the discord bot to your server " + link);
-    } catch (e) {
-        error(e.stack);
+    } catch (error) {
+        log(error.stack);
     }
+});
+// DMs Welcome message
+bot.on('guildMemberAdd', member => {
+    let embed = new Discord.RichEmbed()
+        .setTitle("Welcome to StreamKings' Official Discord server!")
+        .setDescription('Thank you for joining the StreamKings Official Discord server.We are glad that you finally arrived! /n **StreamKings** is a community dedicated to you, our amazing streamers, youtubers, creators & more.')
+        .setFooter(bot.user.username, bot.user.avatarURL)
+        .setColor("#fad411");
+    member.send((embed));
+    return;
 });
 // Setup Messages
 bot.on('message', async message => {
@@ -40,7 +52,7 @@ bot.on('message', async message => {
 
     // Testing Command
     if (command === commandPrefix + "ping") {
-        message.channel.send("Pong");
+        message.channel.send("Pong" + " <:love:417093875614613504>");
     }
     // Userinfo Command
     if (command === commandPrefix + "userinfo") {
