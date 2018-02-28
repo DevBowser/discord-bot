@@ -72,16 +72,19 @@ bot.on('message', async message => {
     if (dm && command === commandPrefix + "addRole") {
         let role = args[0]
         const canAdd = ALLOWED_ROLES.includes(role);
+        const server = client.guilds.find("id", serverID)
+        server.member.find(message.member.roles.find("name", role));
+        // if (message.member.roles.some(r => ALLOWED_ROLES.includes(r.name))) {
+        //     server.members.find("id", message.author.id).addRole("<Some Role ID>");
 
-        if (message.member.some(r => ALLOWED_ROLES.includes(r.name))) {
-            message.member.send(`You already have the role!`)
-        } else {
-            message.member.addRole(message.member.roles.find("name", role));
-            message.member.send("You have been added to " + role);
-        }
-        if (canAdd === false) {
-            message.member.send(`Please check if you spelled the role correctly.  (Roles names that are allowed are ${ALLOWED_ROLES}`)
-        }
+        //     message.member.send(`You already have the role!`)
+        // } else {
+        //     message.member.addRole(message.member.roles.find("name", role));
+        //     message.member.send("You have been added to " + role);
+        // }
+        // if (canAdd === false) {
+        //     message.member.send(`Please check if you spelled the role correctly.  (Roles names that are allowed are ${ALLOWED_ROLES}`)
+        // }
         return;
     }
     // List roles to user
@@ -90,6 +93,8 @@ bot.on('message', async message => {
         return;
     }
     return;
+
+
     // TODO: Does this actually fetch the args correctly?
     // const args = message.content.slice(commandPrefix.length).trim().split(/ +/g);
     // const command = args.shift().toLowerCase();

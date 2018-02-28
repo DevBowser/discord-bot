@@ -1,5 +1,6 @@
 {
     "TOKEN": "YOUR_TOKEN",
     "COMMAND_PREFIX": "!",
-    "BOT_ACTIVITY": "Hello World"
+    "BOT_ACTIVITY": "Hello World",
+    "SERVER_ID": "GUILD_ID"
 }
