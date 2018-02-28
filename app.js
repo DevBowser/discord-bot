@@ -69,11 +69,11 @@ bot.on('message', async message => {
     // Roles
     const ALLOWED_ROLES = ["Streamer", "Youtuber"];
     // Add role to user
-    if (command === commandPrefix + "addRole") {
+    if (dm && command === commandPrefix + "addRole") {
         let role = args[0]
         const canAdd = ALLOWED_ROLES.includes(role);
 
-        if (message.member.server.some(r => ALLOWED_ROLES.includes(r.name))) {
+        if (message.member.some(r => ALLOWED_ROLES.includes(r.name))) {
             message.member.send(`You already have the role!`)
         } else {
             message.member.addRole(message.member.roles.find("name", role));
