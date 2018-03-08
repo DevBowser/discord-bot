@@ -1,23 +1,24 @@
 {
-  "name": "stream-kings-discord-bot",
+  "name": "demonwolfdev-discord-bot",
   "version": "1.0.0",
   "description": "Just another discord bot.",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node bot.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MrDemonWolf/stream-kings-discord-bot.git"
+    "url": "git+https://github.com/demonwolfdev/demonwolfdev-discord.bot.git"
   },
   "author": "MrDemonWolf",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MrDemonWolf/stream-kings-discord-bot/issues"
+    "url": "https://github.com/demonwolfdev/demonwolfdev-discord.bot/issues"
   },
-  "homepage": "https://github.com/MrDemonWolf/stream-kings-discord-bot#readme",
+  "homepage": "https://github.com/demonwolfdev/demonwolfdev-discord.bot#readme",
   "dependencies": {
     "chalk": "^2.3.1",
-    "discord.js": "^11.3.0"
+    "discord.js": "^11.3.0",
+    "twitch-api": "^0.5.0"
   }
 }

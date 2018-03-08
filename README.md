@@ -1,1 +1,1 @@
-# stream-kings-discord-bot
+# DemonWolfDev Bot
