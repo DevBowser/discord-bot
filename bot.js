@@ -231,12 +231,19 @@ bot.on('message', async message => {
     if (command === config.COMMAND_PREFIX + "embed") {
         let permission = message.member.roles.some(r => ["Member"].includes(r.name));
         let admin = message.member.hasPermission(`ADMINISTRATOR`);
-        let owner = message.member.user.id === message.member.guild.owner.user.id
+        let owner = message.member.user.id === message.member.guild.owner.user.id;
+        let commandlength = `${config.COMMAND_PREFIX}embed`;
+        let content = message.content.slice(commandlength.length)
+        log(content)
+        let embed = new Discord.RichEmbed()
+            .setDescription(content)
+            .setColor(config.MAIN_COLOR);
         log(owner)
-        if (owner === true || admin === true || permission == true) {
-            message.channel.send(`You have permissions`);
+        if (permission == true) {
+            message.channel.send(embed);
+            message.delete();
         } else {
-            message.channel.send(`Your not allowed! #Banned`)
+            message.channel.send(`Sorry but you must be a owner or admin to use this command?  If you belive this is a error please message the server owner <@${message.member.guild.owner.user.id.toString()}>`)
         }
     }
     // ServerInfo Command
