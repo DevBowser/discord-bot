@@ -18,7 +18,7 @@
   "homepage": "https://github.com/demonwolfdev/demonwolfdev-discord.bot#readme",
   "dependencies": {
     "chalk": "^2.3.1",
-    "discord.js": "discordjs/discord.js#master",
+    "discord.js": "^11.3.2",
     "twitch-api": "^0.5.0"
   }
 }

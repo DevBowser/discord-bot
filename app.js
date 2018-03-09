@@ -1,7 +1,7 @@
 // Load config
 const config = require('./config.json')
 // Sets up
-const log = log
+const log = console.log
 // Impout
 const chalk = require('chalk');
 const Discord = require('discord.js');
@@ -161,8 +161,6 @@ TwitchMonitor.MIN_POLL_INTERVAL_MS = 1 * 60 * 1000;
 
 module.exports = TwitchMonitor;
 
-bot.login(config.TOKEN);
-
 // Events to happen on when the bot is ready
 bot.on('ready', async () => {
     // Teels you the bot is ready.
@@ -175,7 +173,7 @@ bot.on('ready', async () => {
     // Gives link to connect bot to server 
     try {
         let link = await bot.generateInvite(["ADMINISTRATOR"]);
-        log(`Please use the following link to invite the discord bot to your server ${link}`);
+        log(`[Discord] Please use the following link to invite the discord bot to your server ${link}`);
     } catch (error) {
         log(error.stack);
     }
@@ -200,13 +198,14 @@ bot.on("guildDelete", guild => {
 bot.on('guildMemberAdd', member => {
     let embed = new Discord.RichEmbed()
         .setTitle(`Welcome to ${config.SERVER_NAME} Official Discord server!`)
-        .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username} ${bot.user.avatarURL}`)
+        .setDescription(`Test`)
+        .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username}`, bot.user.avatarURL)
         .setColor("#050240");
     // Sents a welcomeing message to a users DM when they join.
     member.send((embed));
     // Add user to member group
-    member.addRole(member.guild.roles.find('name', 'Member'))
-    log(`${member.user.username} has joined ${config.SERVER_NAME}`)
+    member.addRole(member.guild.roles.find("name", "Member"));
+    log(`${member.user.username} has joined ${config.SERVER_NAME}`);
     return;
 });
 // Setup Messages and commands
@@ -230,9 +229,10 @@ bot.on('message', async message => {
     if (command === config.COMMAND_PREFIX + "userinfo") {
         let embed = new Discord.RichEmbed()
             .setAuthor(message.author.username)
-            .setDescription("Set Infos");
+            .setDescription("Set Infos")
+            .setColor("#050240");
         message.channel.send(embed);
-        log(`${message.author.username} used ${config.COMMAND_PREFIX}userinfo`)
+        log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}userinfo`)
         return;
     }
 
@@ -338,6 +338,8 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
 
     return anySent;
 });
+
+bot.login(config.TOKEN);
 
 // process.on("exit", exitHandler.bind(null, {
 //     save: true
