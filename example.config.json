@@ -1,10 +1,14 @@
 {
     "TOKEN": "YOUR_TOKEN",
-    "COMMAND_PREFIX": "!",
-    "BOT_ACTIVITY": "Hello World",
     "SERVER_ID": "GUILD_ID",
+    "SERVER_NAME": "SERVER_NAME",
+    "SERVER_OWNER": "MrDemonWolf",
+    "BOT_ACTIVITY": "Hello World",
+    "COMMAND_PREFIX": "!",
     "TWITCH_CLIENT_ID": "ID",
     "TWITCH_CHNANELS_NAME": "CHANNEL",
     "TWITCH_CHECK_INTERVAL_MS": 6000,
-    "TWITCH_LIVE_CHANNEL": "EXAMPLE"
+    "TWITCH_LIVE_CHA.NNEL": "EXAMPLE",
+    "MAIN_COLOR": "#050240",
+    "ALT_COLOR": "#fffff"
 }

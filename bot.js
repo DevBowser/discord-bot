@@ -25,13 +25,13 @@ class TwitchMonitor {
         setInterval(() => {
             this.refresh();
         }, checkIntervalMs);
-        log('[TwitchMonitor]', `Configured stream status polling [${checkIntervalMs}ms] for channels [${config.TWITCH_CHNANELS_NAME}].`);
+        log('[Discord]', `Configured stream status polling [${checkIntervalMs}ms] for channels [${config.TWITCH_CHNANELS_NAME}].`);
         this.refresh();
     }
 
     static refresh() {
         if (!config.TWITCH_CHNANELS_NAME) {
-            log('[TwitchMonitor]', 'No channels configured');
+            log('[Discord]', 'No channels configured');
             return;
         }
 
@@ -54,7 +54,7 @@ class TwitchMonitor {
             if (data && data.streams) {
                 this.handleStreamList(data);
             } else {
-                log('[TwitchMonitor]', 'Did not receive a response from the server with stream info.')
+                log('[Discord]', 'Did not receive a response from the server with stream info.')
             }
         });
     }
@@ -80,7 +80,7 @@ class TwitchMonitor {
             let _chanName = nextOnlineList[i];
 
             if (this.activeStreams.indexOf(_chanName) === -1) {
-                log('[TwitchMonitor]', 'Stream channel has gone online:', _chanName);
+                log('[Discord]', 'Stream channel has gone online:', _chanName);
                 anyChanges = true;
             }
 
@@ -92,7 +92,7 @@ class TwitchMonitor {
             let _chanName = this.activeStreams[i];
 
             if (nextOnlineList.indexOf(_chanName) === -1) {
-                log('[TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
+                log('[Discord]', 'Stream channel has gone offline:', _chanName);
                 this.handleChannelOffline(this.channelData[_chanName], this.streamData[_chanName]);
                 anyChanges = true;
             }
@@ -105,7 +105,7 @@ class TwitchMonitor {
                 this.eventBufferStartTime = Date.now();
             }
         } else {
-            log('[TwitchMonitor]', 'Could not notify channel, will try again next update.');
+            log('[Discord]', 'Could not notify channel, will try again next update.');
         }
     }
 
@@ -166,8 +166,11 @@ bot.on('ready', async () => {
     // Teels you the bot is ready.
     log(chalk.green.bold('[Discord]', `Bot has started, with ${bot.users.size} users, in ${bot.channels.size} channels of ${bot.guilds.size} guilds.`));
     // Sets the discord Status
-    bot.user.setActivity("Checkout my master", {
-        url: "https://www.twitch.tv/mrdemonwolf",
+    // bot.user.setActivity("Checkout my master", {
+    //     url: "https://www.twitch.tv/mrdemonwolf",
+    //     type: "STREAMING"
+    bot.user.setActivity("Being MrDemonWolf's Slave", {
+        url: "https://www.mrdemonwolf.me",
         type: "STREAMING"
     });
     // Gives link to connect bot to server 
@@ -210,7 +213,7 @@ bot.on('guildMemberAdd', member => {
 });
 // Setup Messages and commands
 bot.on('message', async message => {
-    const dm = message.channel.type === "dm";
+    if (message.author.equals(bot.user)) return;
     // // Setups prefix and not case
     let messageArray = message.content.split(" ");
     let command = messageArray[0];
@@ -225,14 +228,21 @@ bot.on('message', async message => {
         log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}ping`)
         return;
     }
+    // ServerInfo Command
+    if (command == config.COMMAND_PREFIX + "serverinfo"){
+        let embed = new Discord.RichEmbed()
+        .setAuthor(config.SERVER_OWNER)
+    }
     // Userinfo Command
     if (command === config.COMMAND_PREFIX + "userinfo") {
         let embed = new Discord.RichEmbed()
             .setAuthor(message.author.username)
-            .setDescription("Set Infos")
+            .addField(`Your account was created`, message.author.createdAt)
+            .addField(`Your account ID is`, message.author.id, true)
             .setColor("#050240");
         message.channel.send(embed);
         log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}userinfo`)
+        message.delete(2)
         return;
     }
 
@@ -256,11 +266,6 @@ let syncServerList = (logMembership) => {
             if (logMembership) {
                 log('[Discord]', ' --> ', `Member of server ${guild.name}, target channel is #${targetChannel.name}`);
             }
-
-            if (!permissions.has("SEND_MESSAGES")) {
-                log('[Discord]', 'Permission problem /!\\', `I do not have SEND_MESSAGES permission on channel #${targetChannel.name} on ${guild.name}: announcement sends will fail.`);
-            }
-
             nextTargetChannels.push(targetChannel);
         }
     });
@@ -276,7 +281,7 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
     } catch (e) {}
     let msgFormatted = `${twitchChannel.display_name} went live on Twitch!`;
 
-    let msgEmbed = new Discord.MessageEmbed({
+    let msgEmbed = new Discord.RichEmbed({
         description: `:red_circle: **${twitchChannel.display_name} is currently live on Twitch!**`,
         title: twitchChannel.url,
         url: twitchChannel.url
@@ -288,7 +293,7 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
     msgEmbed.setThumbnail(twitchStream.preview.medium + "?t=" + cacheBustTs);
     msgEmbed.addField("Game", twitchStream.game || "(No game)", true);
     msgEmbed.addField("Status", twitchChannelIsLive ? `Live for ${twitchStream.viewers} viewers` : 'Stream has now ended', true);
-    msgEmbed.setFooter(twitchChannel.status, twitchChannel.logo);
+    msgEmbed.setFooter(`Title: ${twitchChannel.status}`, twitchChannel.logo);
 
     if (!twitchChannelIsLive) {
         msgEmbed.setDescription(`:white_circle:  ${twitchChannel.display_name} was live on Twitch.`);
@@ -340,16 +345,3 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
 });
 
 bot.login(config.TOKEN);
-
-// process.on("exit", exitHandler.bind(null, {
-//     save: true
-// }));
-// process.on("SIGINT", exitHandler.bind(null, {
-//     exit: true
-// }));
-// process.on("SIGTERM", exitHandler.bind(null, {
-//     exit: true
-// }));
-// process.on("uncaughtException", exitHandler.bind(null, {
-//     exit: true
-// }));
