@@ -2,14 +2,14 @@
 const config = require('./config.json')
 // Sets up
 const log = console.log
-// Impout
+// Imput Stuff
 const chalk = require('chalk');
 const Discord = require('discord.js');
 const TwitchApi = require('twitch-api');
 const bot = new Discord.Client({
     autoReconnect: true
 });
-
+// Does the Twitch Monitor for Alert in channels
 class TwitchMonitor {
     static start() {
         this.Twitch = new TwitchApi({
@@ -161,9 +161,8 @@ TwitchMonitor.MIN_POLL_INTERVAL_MS = 1 * 60 * 1000;
 
 module.exports = TwitchMonitor;
 
-// Events to happen on when the bot is ready
+// Events to happen when the bot is ready
 bot.on('ready', async () => {
-    // Teels you the bot is ready.
     log(chalk.green.bold('[Discord]', `Bot has started, with ${bot.users.size} users, in ${bot.channels.size} channels of ${bot.guilds.size} guilds.`));
     // Sets the discord Status
     // bot.user.setActivity("Checkout my master", {
@@ -204,7 +203,7 @@ bot.on('guildMemberAdd', member => {
         .setDescription(`Make sure you read up on the rules in the rules.  If you want to learn more about DemonWolfDev Community you can read the welcome channel or checkout our website www.demonwolfdev.com`)
         .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username}`, bot.user.avatarURL)
         .setColor(config.MAIN_COLOR);
-    // Sents a welcomeing message to a users DM when they join.
+    // Sends a welcomeing message to a users DM when they join.
     member.send((embed));
     // Add user to member group
     member.addRole(member.guild.roles.find("name", "Member"));
