@@ -201,9 +201,9 @@ bot.on("guildDelete", guild => {
 bot.on('guildMemberAdd', member => {
     let embed = new Discord.RichEmbed()
         .setTitle(`Welcome to ${config.SERVER_NAME} Official Discord server!`)
-        .setDescription(`Test`)
+        .setDescription(`Make sure you read up on the rules in the rules.  If you want to learn more about DemonWolfDev Community you can read the welcome channel or checkout our website www.demonwolfdev.com`)
         .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username}`, bot.user.avatarURL)
-        .setColor("#050240");
+        .setColor(config.MAIN_COLOR);
     // Sents a welcomeing message to a users DM when they join.
     member.send((embed));
     // Add user to member group
@@ -228,10 +228,25 @@ bot.on('message', async message => {
         log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}ping`)
         return;
     }
+    // Ember command
+    if (command === config.COMMAND_PREFIX + "embed") {
+        let permission = message.member.roles.some(r => ["Member"].includes(r.name));
+        let admin = message.member.hasPermission(`ADMINISTRATOR`);
+        let owner = message.member.user.id === message.member.guild.owner.user.id
+        log(owner)
+        if (owner === true || admin === true || permission == true) {
+            message.channel.send(`You have permissions`);
+        } else {
+            message.channel.send(`Your not allowed! #Banned`)
+        }
+    }
     // ServerInfo Command
-    if (command == config.COMMAND_PREFIX + "serverinfo"){
+    if (command == config.COMMAND_PREFIX + "serverinfo") {
         let embed = new Discord.RichEmbed()
-        .setAuthor(config.SERVER_OWNER)
+            .setAuthor(config.SERVER_OWNER)
+            .setColor(config.MAIN_COLOR);
+        message.channel.send(embed)
+        message.delete(2)
     }
     // Userinfo Command
     if (command === config.COMMAND_PREFIX + "userinfo") {
@@ -239,7 +254,7 @@ bot.on('message', async message => {
             .setAuthor(message.author.username)
             .addField(`Your account was created`, message.author.createdAt)
             .addField(`Your account ID is`, message.author.id, true)
-            .setColor("#050240");
+            .setColor(config.MAIN_COLOR);
         message.channel.send(embed);
         log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}userinfo`)
         message.delete(2)
