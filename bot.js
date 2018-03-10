@@ -250,17 +250,27 @@ bot.on('message', async message => {
         log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}embed`)
     }
     // Command to remove messges
-    if (command === config.COMMAND_PREFIX + "clear") {
-        let number = args[0];
-        if (owner || admin && number.match(/^\+?[1-9]\d*$/)) {
-            message.delete()
-            message.channel.bulkDelete(number);
-            log(number)
-        } else {
-            message.delete()
-            message.channel.send(`Sorry but you either don't have permissions or did not enter a vaid number`)
+    if (command === config.COMMAND_PREFIX + "purge") {
+        let permission = message.member.roles.some(r => ["Administrator", "Moderator"].includes(r.name));
+        async function purge() {
+            message.delete();
+            if (!permission) {
+                message.channel.reply(`You don't have permission!`);
+                return;
+            }
+            if (isNaN(args[0])) {
+                message.channel.send(`Please use a number as your arguments. \n Usage: ${config.COMMAND_PREFIX}purge <amount>`);
+                log(chalk.red.bold('[Discord] Purge command error: ERROR 9001'));
+                return;
+            }
+            let fetched = await message.channel.fetchMessages({
+                limit: args[0]
+            });
+            log(`${fetched.size} messages found, purging them at will!`)
+            message.channel.bulkDelete(fetched)
+                .catch(error => log(chalk.red.bold('Purge command error: ${error}')));
         }
-
+        purge()
     }
     // ServerInfo Command
     if (command == config.COMMAND_PREFIX + "serverinfo") {
@@ -426,4 +436,4 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
     return anySent;
 });
 
-bot.login(config.TOKEN);
+bot.login(config.TOKEN)
