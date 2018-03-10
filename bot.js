@@ -1,5 +1,5 @@
 // Load config
-const config = require('./config.json')
+const config = require('./config.json');
 // Sets up
 const log = console.log
 // Imput Stuff
@@ -25,12 +25,12 @@ class TwitchMonitor {
         setInterval(() => {
             this.refresh();
         }, checkIntervalMs);
-        log('[Discord]', `Configured stream status polling [${checkIntervalMs}ms] for channels [${config.TWITCH_CHNANELS_NAME}].`);
+        log('[Discord]', `Configured stream status polling [${checkIntervalMs}ms] for channels [${config.TWITCH_CHANNELS_NAME}].`);
         this.refresh();
     }
 
     static refresh() {
-        if (!config.TWITCH_CHNANELS_NAME) {
+        if (!config.TWITCH_CHANNELS_NAME) {
             log('[Discord]', 'No channels configured');
             return;
         }
@@ -47,7 +47,7 @@ class TwitchMonitor {
         }
 
         let params = {
-            "channel": config.TWITCH_CHNANELS_NAME
+            "channel": config.TWITCH_CHANNELS_NAME
         };
 
         this.Twitch.getStreams(params, (idk, data) => {
@@ -168,9 +168,8 @@ bot.on('ready', async () => {
     // bot.user.setActivity("Checkout my master", {
     //     url: "https://www.twitch.tv/mrdemonwolf",
     //     type: "STREAMING"
-    bot.user.setActivity("Being MrDemonWolf's Slave", {
-        url: "https://www.mrdemonwolf.me",
-        type: "STREAMING"
+    bot.user.setActivity(config.BOT_ACTIVITY, {
+        type: "PLAYING"
     });
     // Gives link to connect bot to server 
     try {
@@ -212,12 +211,18 @@ bot.on('guildMemberAdd', member => {
 });
 // Setup Messages and commands
 bot.on('message', async message => {
+    // Owner Permissions
+    const owner = message.member.user.id === message.member.guild.owner.user.id;
+    // Admin Permissions
+    const admin = message.member.hasPermission(`ADMINISTRATOR`);
+
+    // If bot user don't reply to it selfs
     if (message.author.equals(bot.user)) return;
+
     // // Setups prefix and not case
     let messageArray = message.content.split(" ");
     let command = messageArray[0];
     let args = messageArray.slice(1);
-
 
     if (!command.startsWith(config.COMMAND_PREFIX)) return;
 
@@ -229,27 +234,44 @@ bot.on('message', async message => {
     }
     // Ember command
     if (command === config.COMMAND_PREFIX + "embed") {
-        let permission = message.member.roles.some(r => ["Member"].includes(r.name));
-        let admin = message.member.hasPermission(`ADMINISTRATOR`);
-        let owner = message.member.user.id === message.member.guild.owner.user.id;
+        let permission = message.member.roles.some(r => ["Administrator", "Moderator"].includes(r.name));
         let commandlength = `${config.COMMAND_PREFIX}embed`;
         let content = message.content.slice(commandlength.length)
-        log(content)
         let embed = new Discord.RichEmbed()
             .setDescription(content)
             .setColor(config.MAIN_COLOR);
-        log(owner)
-        if (permission == true) {
+        if (owner === true || permission === true) {
             message.channel.send(embed);
             message.delete();
         } else {
             message.channel.send(`Sorry but you must be a owner or admin to use this command?  If you belive this is a error please message the server owner <@${message.member.guild.owner.user.id.toString()}>`)
+            log(`[Discord] ${message.author.username} tryed to use ${config.COMMAND_PREFIX}embed but did not have permission!`)
         }
+        log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}embed`)
+    }
+    // Command to remove messges
+    if (command === config.COMMAND_PREFIX + "clear") {
+        let number = args[0];
+        if (owner || admin && number.match(/^\+?[1-9]\d*$/)) {
+            message.delete()
+            message.channel.bulkDelete(number);
+            log(number)
+        } else {
+            message.delete()
+            message.channel.send(`Sorry but you either don't have permissions or did not enter a vaid number`)
+        }
+
     }
     // ServerInfo Command
     if (command == config.COMMAND_PREFIX + "serverinfo") {
         let embed = new Discord.RichEmbed()
-            .setAuthor(config.SERVER_OWNER)
+            .setTitle(`Server name ${message.member.guild.name}!`)
+            .addField(`Server Owner`, message.member.guild.owner.user.username, true)
+            .addField('Invite Link', config.SERVER_INVITE, true)
+            .addField('Created on', message.member.guild.createdAt)
+            .addField(`Members joined`, message.member.guild.memberCount)
+            .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username}`, bot.user.avatarURL)
+            // .setAuthor(message.member.guild.owner.user.username)
             .setColor(config.MAIN_COLOR);
         message.channel.send(embed)
         message.delete(2)
@@ -257,17 +279,56 @@ bot.on('message', async message => {
     // Userinfo Command
     if (command === config.COMMAND_PREFIX + "userinfo") {
         let embed = new Discord.RichEmbed()
-            .setAuthor(message.author.username)
+            .setTitle(`${message.author.username} User Info`)
             .addField(`Your account was created`, message.author.createdAt)
             .addField(`Your account ID is`, message.author.id, true)
+            .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username}`, bot.user.avatarURL)
             .setColor(config.MAIN_COLOR);
         message.channel.send(embed);
         log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}userinfo`)
         message.delete(2)
         return;
     }
+    if (command === config.COMMAND_PREFIX + "botinfo") {
+        let time = process.uptime();
 
-    return;
+        function secondsToHms(d) {
+            d = Number(d);
+
+            var h = Math.floor(d / 3600);
+            var m = Math.floor(d % 3600 / 60);
+            var s = Math.floor(d % 3600 % 60);
+
+            return ('0' + h).slice(-2) + ":" + ('0' + m).slice(-2) + ":" + ('0' + s).slice(-2);
+        }
+        let embed = new Discord.RichEmbed()
+            .setTitle(`Bot Information`)
+            .addField("Born", bot.user.createdAt, true)
+            .addField("Name", bot.user.username, true)
+            .addField("Uptime", (secondsToHms(time)))
+            .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username}`, bot.user.avatarURL);
+        message.channel.send(embed)
+        log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}botinfo`)
+
+    }
+    // Command List
+    if (command === config.COMMAND_PREFIX + "commands") {
+        let permission = message.member.roles.some(r => ["Administrator", "Moderator"].includes(r.name));
+        let embedUsersCommands = new Discord.RichEmbed()
+            .setTitle("User Commnads")
+            .addField("User Info", `${config.COMMAND_PREFIX}userinfo`, true)
+            .addField("Server Info", `${config.COMMAND_PREFIX}serverinfo`, true)
+            .addField("Bot Info", `${config.COMMAND_PREFIX}botinfo`, true)
+            .addField("Social Info", `${config.COMMAND_PREFIX}Social Info`, true)
+            .addField("Ping", `${config.COMMAND_PREFIX}ping`, true)
+        message.channel.send(embedUsersCommands)
+        if (permission) {
+            let embedStaffCommands = new Discord.RichEmbed()
+                .setTitle("Staff Commnads")
+                .addField("Embed Message Maker", `${config.COMMAND_PREFIX}embed`)
+            message.channel.send(embedStaffCommands)
+        }
+    }
 });
 
 // Alerts people whne twitch channel goes live.
@@ -317,7 +378,7 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
     msgEmbed.setFooter(`Title: ${twitchChannel.status}`, twitchChannel.logo);
 
     if (!twitchChannelIsLive) {
-        msgEmbed.setDescription(`:white_circle:  ${twitchChannel.display_name} was live on Twitch.`);
+        msgEmbed.setDescription(`:white_circle:  ${twitchChannel.display_name} is now offline on Twitch`);
     }
 
     let anySent = false;
