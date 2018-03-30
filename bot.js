@@ -4,11 +4,13 @@ const config = require('./config.json');
 const log = console.log
 // Imput Stuff
 const chalk = require('chalk');
-const Discord = require('discord.js');
 const TwitchApi = require('twitch-api');
+const Discord = require('discord.js');
+
 const bot = new Discord.Client({
     autoReconnect: true
 });
+
 // Does the Twitch Monitor for Alert in channels
 class TwitchMonitor {
     static start() {
@@ -165,18 +167,24 @@ module.exports = TwitchMonitor;
 bot.on('ready', async () => {
     log(chalk.green.bold('[Discord]', `Bot has started, with ${bot.users.size} users, in ${bot.channels.size} channels of ${bot.guilds.size} guilds.`));
     // Sets the discord Status
-    // bot.user.setActivity("Checkout my master", {
-    //     url: "https://www.twitch.tv/mrdemonwolf",
-    //     type: "STREAMING"
-    bot.user.setActivity(config.BOT_ACTIVITY, {
-        type: "PLAYING"
-    });
+    if (config.BOT_ACTIVITY_STREAMING) {
+        bot.user.setActivity(BOT_ACTIVITY_STREAMING_STATUS, {
+            url: config.BOT_ACTIVITY_STREAMING_URL,
+            type: "STREAMING"
+        });
+    } else {
+        // Enable the streaming status
+        bot.user.setActivity(config.BOT_ACTIVITY, {
+            type: "PLAYING"
+        });
+    }
+
     // Gives link to connect bot to server 
     try {
         let link = await bot.generateInvite(["ADMINISTRATOR"]);
         log(`[Discord] Please use the following link to invite the discord bot to your server ${link}`);
     } catch (error) {
-        log(error.stack);
+        log(error);
     }
     syncServerList(true);
     TwitchMonitor.start();
@@ -200,14 +208,15 @@ bot.on('guildMemberAdd', member => {
     let embed = new Discord.RichEmbed()
         .setTitle(`Welcome to ${config.SERVER_NAME} Official Discord server!`)
         .setDescription(`Make sure you read up on the rules in the rules.  If you want to learn more about DemonWolfDev Community you can read the welcome channel or checkout our website www.demonwolfdev.com`)
-        .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username}`, bot.user.avatarURL)
         .setColor(config.MAIN_COLOR);
     // Sends a welcomeing message to a users DM when they join.
-    member.send((embed));
+    member.send((embed))
     // Add user to member group
-    member.addRole(member.guild.roles.find("name", "Member"));
-    log(`${member.user.username} has joined ${config.SERVER_NAME}`);
-    return;
+    member.addRole(member.guild.roles.find("name", "Member"))
+    // Show them joining in log
+    // log(`${member.user.username} has joined ${config.SERVER_NAME}`);
+
+    syncServerList(false);
 });
 // Setup Messages and commands
 bot.on('message', async message => {
@@ -232,6 +241,11 @@ bot.on('message', async message => {
         log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}ping`)
         return;
     }
+    if (command === config.COMMAND_PREFIX + "test") {
+        message.member.send(`Test`)
+
+    }
+
     // Ember command
     if (command === config.COMMAND_PREFIX + "embed") {
         let permission = message.member.roles.some(r => ["Administrator", "Moderator"].includes(r.name));
@@ -240,14 +254,21 @@ bot.on('message', async message => {
         let embed = new Discord.RichEmbed()
             .setDescription(content)
             .setColor(config.MAIN_COLOR);
-        if (owner === true || permission === true) {
+        if (permission && !args[0]) {
+            log("ERROR 9001")
+            log(!args[0])
+
+        };
+        if (permission && args[0]) {
             message.channel.send(embed);
             message.delete();
-        } else {
-            message.channel.send(`Sorry but you must be a owner or admin to use this command?  If you belive this is a error please message the server owner <@${message.member.guild.owner.user.id.toString()}>`)
+            log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}embed`)
+            log(args[0])
+        }
+        if (!permission && args[0]) {
+            message.channel.send(`Sorry but you don't have permissions to use the command!`)
             log(`[Discord] ${message.author.username} tryed to use ${config.COMMAND_PREFIX}embed but did not have permission!`)
         }
-        log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}embed`)
     }
     // Command to remove messges
     if (command === config.COMMAND_PREFIX + "purge") {
@@ -255,12 +276,11 @@ bot.on('message', async message => {
         async function purge() {
             message.delete();
             if (!permission) {
-                message.channel.reply(`You don't have permission!`);
+                message.reply(`Sorry but you must be a owner or admin to use this command?  If you belive this is a error please message the server owner <@${message.member.guild.owner.user.id.toString()}>`);
                 return;
             }
             if (isNaN(args[0])) {
                 message.channel.send(`Please use a number as your arguments. \n Usage: ${config.COMMAND_PREFIX}purge <amount>`);
-                log(chalk.red.bold('[Discord] Purge command error: ERROR 9001'));
                 return;
             }
             let fetched = await message.channel.fetchMessages({
@@ -280,8 +300,6 @@ bot.on('message', async message => {
             .addField('Invite Link', config.SERVER_INVITE, true)
             .addField('Created on', message.member.guild.createdAt)
             .addField(`Members joined`, message.member.guild.memberCount)
-            .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username}`, bot.user.avatarURL)
-            // .setAuthor(message.member.guild.owner.user.username)
             .setColor(config.MAIN_COLOR);
         message.channel.send(embed)
         message.delete(2)
@@ -292,7 +310,6 @@ bot.on('message', async message => {
             .setTitle(`${message.author.username} User Info`)
             .addField(`Your account was created`, message.author.createdAt)
             .addField(`Your account ID is`, message.author.id, true)
-            .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username}`, bot.user.avatarURL)
             .setColor(config.MAIN_COLOR);
         message.channel.send(embed);
         log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}userinfo`)
@@ -330,13 +347,25 @@ bot.on('message', async message => {
             .addField("Server Info", `${config.COMMAND_PREFIX}serverinfo`, true)
             .addField("Bot Info", `${config.COMMAND_PREFIX}botinfo`, true)
             .addField("Social Info", `${config.COMMAND_PREFIX}Social Info`, true)
-            .addField("Ping", `${config.COMMAND_PREFIX}ping`, true)
-        message.channel.send(embedUsersCommands)
+            .addField("Ping", `${config.COMMAND_PREFIX}ping`, true);
         if (permission) {
             let embedStaffCommands = new Discord.RichEmbed()
                 .setTitle("Staff Commnads")
                 .addField("Embed Message Maker", `${config.COMMAND_PREFIX}embed`)
             message.channel.send(embedStaffCommands)
+        }
+    }
+    if (command === config.COMMAND_PREFIX + "join") {
+        log("test")
+        // Only try to join the sender's voice channel if they are in one themselves
+        if (message.member.voiceChannel) {
+            message.member.voiceChannel.join()
+                .then(connection => { // Connection is an instance of VoiceConnection
+                    message.reply('I have successfully connected to the channel!');
+                })
+                .catch(console.log);
+        } else {
+            message.reply('You need to join a voice channel first!');
         }
     }
 });
