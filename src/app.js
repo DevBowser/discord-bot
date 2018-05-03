@@ -9,166 +9,12 @@ const TwitchApi = require('twitch-api');
 const bot = new Discord.Client({
     autoReconnect: true
 });
-
-class TwitchMonitor {
-    static start() {
-        this.Twitch = new TwitchApi({
-            clientId: config.TWITCH_CLIENT_ID,
-            // clientSecret: config.twitch_client_secret
-        });
-        let checkIntervalMs = parseInt(config.TWITCH_CHECK_INTERVAL_MS);
-
-        if (isNaN(checkIntervalMs) || checkIntervalMs < TwitchMonitor.MIN_POLL_INTERVAL_MS) {
-            checkIntervalMs = TwitchMonitor.MIN_POLL_INTERVAL_MS;
-        }
-
-        setInterval(() => {
-            this.refresh();
-        }, checkIntervalMs);
-        log('[Discord]', `Configured stream status polling [${checkIntervalMs}ms] for channels [${config.TWITCH_CHNANELS_NAME}].`);
-        this.refresh();
-    }
-
-    static refresh() {
-        if (!config.TWITCH_CHNANELS_NAME) {
-            log('[Discord]', 'No channels configured');
-            return;
-        }
-
-        if (this.eventBufferStartTime) {
-            let now = Date.now();
-            let timeSinceMs = now - this.eventBufferStartTime;
-
-            if (timeSinceMs >= TwitchMonitor.EVENT_BUFFER_MS) {
-                this.eventBufferStartTime = null;
-            } else {
-                return;
-            }
-        }
-
-        let params = {
-            "channel": config.TWITCH_CHNANELS_NAME
-        };
-
-        this.Twitch.getStreams(params, (idk, data) => {
-            if (data && data.streams) {
-                this.handleStreamList(data);
-            } else {
-                log('[Discord]', 'Did not receive a response from the server with stream info.')
-            }
-        });
-    }
-
-    static handleStreamList(data) {
-        let nextOnlineList = [];
-
-        for (let i = 0; i < data.streams.length; i++) {
-            let _stream = data.streams[i];
-            let channelName = _stream.channel.name;
-
-            this.channelData[channelName] = _stream.channel;
-            this.streamData[channelName] = _stream;
-
-            nextOnlineList.push(_stream.channel.name);
-        }
-
-
-        let notifyFailed = false;
-        let anyChanges = false;
-
-        for (let i = 0; i < nextOnlineList.length; i++) {
-            let _chanName = nextOnlineList[i];
-
-            if (this.activeStreams.indexOf(_chanName) === -1) {
-                log('[Discord]', 'Stream channel has gone online:', _chanName);
-                anyChanges = true;
-            }
-
-            if (!this.handleChannelLiveUpdate(this.channelData[_chanName], this.streamData[_chanName], true)) {
-                notifyFailed = true;
-            }
-        }
-        for (let i = 0; i < this.activeStreams.length; i++) {
-            let _chanName = this.activeStreams[i];
-
-            if (nextOnlineList.indexOf(_chanName) === -1) {
-                log('[Discord]', 'Stream channel has gone offline:', _chanName);
-                this.handleChannelOffline(this.channelData[_chanName], this.streamData[_chanName]);
-                anyChanges = true;
-            }
-        }
-
-        if (!notifyFailed) {
-            this.activeStreams = nextOnlineList;
-
-            if (anyChanges) {
-                this.eventBufferStartTime = Date.now();
-            }
-        } else {
-            log('[Discord]', 'Could not notify channel, will try again next update.');
-        }
-    }
-
-    static handleChannelLiveUpdate(channelObj, streamObj, isOnline) {
-        for (let i = 0; i < this.channelLiveCallbacks.length; i++) {
-            let _callback = this.channelLiveCallbacks[i];
-
-            if (_callback) {
-                if (_callback(channelObj, streamObj, isOnline) === false) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    static handleChannelOffline(channelObj, streamObj) {
-        this.handleChannelLiveUpdate(channelObj, streamObj, false);
-
-        for (let i = 0; i < this.channelOfflineCallbacks.length; i++) {
-            let _callback = this.channelOfflineCallbacks[i];
-
-            if (_callback) {
-                if (_callback(channelObj) === false) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    static onChannelLiveUpdate(callback) {
-        this.channelLiveCallbacks.push(callback);
-    }
-
-    static onChannelOffline(callback) {
-        this.channelOfflineCallbacks.push(callback);
-    }
-}
-
-TwitchMonitor.eventBufferStartTime = 0;
-TwitchMonitor.activeStreams = [];
-TwitchMonitor.channelData = {};
-TwitchMonitor.streamData = {};
-
-TwitchMonitor.channelLiveCallbacks = [];
-TwitchMonitor.channelOfflineCallbacks = [];
-
-TwitchMonitor.EVENT_BUFFER_MS = 2 * 60 * 1000;
-TwitchMonitor.MIN_POLL_INTERVAL_MS = 1 * 60 * 1000;
-
-module.exports = TwitchMonitor;
+const TwitchMonitor = require('./TwitchMonitor.js');
 
 // Events to happen on when the bot is ready
 bot.on('ready', async () => {
     // Teels you the bot is ready.
-    log(chalk.green.bold('[Discord]', `Bot has started, with ${bot.users.size} users, in ${bot.channels.size} channels of ${bot.guilds.size} guilds.`));
-    // Sets the discord Status
-    // bot.user.setActivity("Checkout my master", {
-    //     url: "https://www.twitch.tv/mrdemonwolf",
-    //     type: "STREAMING"
+    log(chalk.green.bold('[Discord]', `Bot has started, with ${bot.users.size} users, in ${bot.channels.size} channels of ${bot.guilds.size} guild.`));
     bot.user.setActivity("Being MrDemonWolf's Slave", {
         url: "https://www.mrdemonwolf.me",
         type: "STREAMING"
@@ -200,7 +46,7 @@ bot.on("guildDelete", guild => {
 // Events to happen when a new member joins
 bot.on('guildMemberAdd', member => {
     let embed = new Discord.RichEmbed()
-        .setTitle(`Welcome to ${config.SERVER_NAME} Official Discord server!`)
+        .setTitle(`Welcome to SERVER_NAME Official Discord server!`)
         .setDescription(`Make sure you read up on the rules in the rules.  If you want to learn more about DemonWolfDev Community you can read the welcome channel or checkout our website www.demonwolfdev.com`)
         .setFooter(`Copyright © 2018 MrDemonWolf Powered by ${bot.user.username}`, bot.user.avatarURL)
         .setColor(config.MAIN_COLOR);
@@ -224,9 +70,21 @@ bot.on('message', async message => {
 
     // Testing Command
     if (command === config.COMMAND_PREFIX + "ping") {
-        message.channel.send("Pong");
-        log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}ping`)
-        return;
+        try {
+            message.channel.send("Pong")
+            log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}ping`);
+        } catch (e) {
+            log(`[Discord] ${messagae.author.username} tryed to use ${config.COMMAND_PREFIX} but had a error.`)
+        }
+    }
+    // Testing Command
+    if (command === config.COMMAND_PREFIX + "test") {
+        try {
+            message.author.send("Pong")
+            log(`[Discord] ${message.author.username} used ${config.COMMAND_PREFIX}test`);
+        } catch (e) {
+            log(`[Discord] ${messagae.author.username} tryed to use ${config.COMMAND_PREFIX} but had a error.`)
+        }
     }
     // Ember command
     if (command === config.COMMAND_PREFIX + "embed") {
@@ -243,7 +101,7 @@ bot.on('message', async message => {
     // ServerInfo Command
     if (command == config.COMMAND_PREFIX + "serverinfo") {
         let embed = new Discord.RichEmbed()
-            .setAuthor(config.SERVER_OWNER)
+            // .setAuthor(config.SERVER_OWNER)
             .setColor(config.MAIN_COLOR);
         message.channel.send(embed)
         message.delete(2)

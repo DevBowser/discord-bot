@@ -4,7 +4,7 @@
   "description": "Just another discord bot.",
   "main": "app.js",
   "scripts": {
-    "start": "node bot.js"
+    "start": "node src/app.js"
   },
   "repository": {
     "type": "git",
