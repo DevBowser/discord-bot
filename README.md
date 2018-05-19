@@ -1,1 +1,2 @@
-# DemonWolfDev Bot
+# Discord Bot
+

@@ -4,7 +4,8 @@
   "description": "Just another discord bot.",
   "main": "app.js",
   "scripts": {
-    "start": "node bot.js"
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
   },
   "repository": {
     "type": "git",
@@ -17,10 +18,20 @@
   },
   "homepage": "https://github.com/demonwolfdev/demonwolfdev-discord.bot#readme",
   "dependencies": {
-    "chalk": "^2.3.1",
+    "chalk": "^2.4.1",
     "discord.js": "^11.3.2",
+<<<<<<< HEAD
     "ffmpeg-binaries": "^3.2.2-3",
     "lowdb": "^1.0.0",
     "twitch-api": "^0.5.0"
+=======
+    "mongoose": "^5.1.1",
+    "pm2": "^2.10.3",
+    "twitch-api": "^0.5.0",
+    "twitter": "^1.7.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.4"
+>>>>>>> master
   }
 }
