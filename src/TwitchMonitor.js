@@ -51,6 +51,7 @@ class TwitchMonitor {
                 this.handleStreamList(data);
             } else {
                 log('[Discord]', 'Did not receive a response from the server with stream info.')
+                return;
             }
         });
     }
