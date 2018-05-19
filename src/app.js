@@ -8,11 +8,23 @@ const Discord = require('discord.js');
 const TwitchApi = require('twitch-api');
 const TwitterAPI = require('twitter');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+
+/**
+ * Load environment variables from .env file, where API keys and passwords (should be) configured.
+ */
+dotenv.load({ path: '.env' });
 
 const bot = new Discord.Client({
   autoReconnect: true
 });
-mongoose.connect('mongodb://localhost/myTestDB');
+
+mongoose.connect(process.env.MONGODB_URI);
+mongoose.connection.on('error', (err) => {
+  console.error(err);
+  console.log(`${chalk.red('✗')} MongoDB connection error. Please make sure MongoDB is running.`);
+  process.exit();
+});
 
 var db = mongoose.connection;
 
